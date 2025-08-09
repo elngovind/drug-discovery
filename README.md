@@ -4,11 +4,11 @@
 **Project Type:** AI Hackathon - Drug Discovery Application  
 **Repository:** https://github.com/elngovind/drug-discovery  
 
-## 🏥 Overview
+## Overview
 
 A comprehensive AI-powered platform that prevents dangerous drug interactions by providing real-time safety assessments, side effect information, and alternative medication suggestions. Built with AWS serverless architecture and advanced machine learning capabilities.
 
-## 🚀 Features
+## Features
 
 - **Real-time Interaction Checking**: Instant analysis of drug combinations with severity classifications
 - **AI-Powered Explanations**: Natural language processing for personalized medical explanations
@@ -17,7 +17,7 @@ A comprehensive AI-powered platform that prevents dangerous drug interactions by
 - **Global Accessibility**: Multi-language support and international drug name recognition
 - **Healthcare Integration**: API endpoints for EHR systems and mobile applications
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Backend
 - **Node.js + TypeScript**: Type-safe server-side development
@@ -36,7 +36,7 @@ A comprehensive AI-powered platform that prevents dangerous drug interactions by
 - **React.js**: Responsive web application
 - **Progressive Web App**: Mobile-optimized experience
 
-## 📋 Project Structure
+## Project Structure
 
 ```
 drug-discovery/
@@ -51,7 +51,7 @@ drug-discovery/
 └── docs/               # Documentation
 ```
 
-## 🏗️ Development Setup
+## Development Setup
 
 ### Prerequisites
 - Node.js 18+ 
@@ -86,7 +86,7 @@ drug-discovery/
    npm run deploy
    ```
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run all tests
@@ -99,14 +99,14 @@ npm run test:watch
 npm test -- --coverage
 ```
 
-## 📊 Data Sources
+## Data Sources
 
 - **DrugBank**: Comprehensive drug interaction database (13,000+ drugs)
 - **FDA FAERS**: Adverse Event Reporting System for side effects
 - **SIDER**: Side Effect Resource database
 - **RxNorm**: Standardized medication nomenclature
 
-## 🌍 Global Impact
+## Global Impact
 
 This platform addresses a critical healthcare need:
 - **125,000+ deaths annually** from preventable drug interactions in the US alone
@@ -114,25 +114,25 @@ This platform addresses a critical healthcare need:
 - **Global accessibility** for underserved healthcare systems
 - **Open source** for worldwide collaboration
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions from the global healthcare and developer community! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🏆 Hackathon Goals
+## Hackathon Goals
 
 - [x] **Day 1-2**: Core platform and API development
 - [ ] **Day 3**: AI features and frontend development  
 - [ ] **Day 4**: Polish, optimization, and demo preparation
 
-## 📞 Contact
+## Contact
 
 - **Govind**: [@elngovind](https://github.com/elngovind)
 - **Ermanno**: [GitHub Profile]
 
 ---
 
-*Building technology that saves lives, one interaction at a time.* 💊🤖
+*Building technology that saves lives, one interaction at a time.*
