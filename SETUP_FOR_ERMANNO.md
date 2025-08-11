@@ -37,7 +37,7 @@ npm test
 - **Mobile Optimization**: Responsive design
 
 #### Your Task List
-- [ ] Task 9: React frontend with drug input interface
+- [x] Task 9: React frontend with drug input interface ✅ COMPLETED
 - [ ] Task 10: Real-time interaction checking with visual warnings
 - [ ] Task 11: Detailed explanation and monitoring guidance
 - [ ] Task 12: Patient-friendly mode with simplified language
@@ -117,6 +117,10 @@ git checkout main
 git pull origin main
 git checkout frontend/ermanno
 git merge main
+
+# Start development server
+npm run dev:frontend
+# App will open at http://localhost:3000
 
 # During development
 git add .
