@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Search, Plus, X, Pill } from 'lucide-react';
-import { Drug } from '../types';
-import { searchDrugs } from '../data/mockData';
-import { useDrugContext } from '../context/DrugContext';
+import React, { useState, useRef, useEffect } from "react";
+import { Search, Plus, X, Pill } from "lucide-react";
+import { Drug } from "../types";
+import { searchDrugs } from "../data/mockData";
+import { useDrugContext } from "../context/DrugContext";
 
 const DrugSearchForm: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Drug[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -32,23 +32,23 @@ const DrugSearchForm: React.FC = () => {
     if (!showResults || searchResults.length === 0) return;
 
     switch (e.key) {
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
-        setSelectedIndex(prev => 
+        setSelectedIndex((prev) =>
           prev < searchResults.length - 1 ? prev + 1 : prev
         );
         break;
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
-        setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
         break;
-      case 'Enter':
+      case "Enter":
         e.preventDefault();
         if (selectedIndex >= 0) {
           handleSelectDrug(searchResults[selectedIndex]);
         }
         break;
-      case 'Escape':
+      case "Escape":
         setShowResults(false);
         setSelectedIndex(-1);
         break;
@@ -57,10 +57,20 @@ const DrugSearchForm: React.FC = () => {
 
   const handleSelectDrug = (drug: Drug) => {
     addDrug(drug);
-    setSearchQuery('');
+    setSearchQuery("");
     setShowResults(false);
     setSelectedIndex(-1);
     searchInputRef.current?.focus();
+
+    // Show brief success feedback
+    if (searchInputRef.current) {
+      searchInputRef.current.style.borderColor = "#10b981";
+      setTimeout(() => {
+        if (searchInputRef.current) {
+          searchInputRef.current.style.borderColor = "";
+        }
+      }, 1000);
+    }
   };
 
   const handleRemoveDrug = (drugId: string) => {
@@ -112,18 +122,20 @@ const DrugSearchForm: React.FC = () => {
                   key={drug.id}
                   onClick={() => handleSelectDrug(drug)}
                   className={`w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors ${
-                    index === selectedIndex ? 'bg-blue-50 border-blue-200' : ''
+                    index === selectedIndex ? "bg-blue-50 border-blue-200" : ""
                   }`}
                 >
                   <div className="flex items-center space-x-3">
                     <Pill className="w-4 h-4 text-gray-400" />
                     <div>
-                      <div className="font-medium text-gray-900">{drug.name}</div>
+                      <div className="font-medium text-gray-900">
+                        {drug.name}
+                      </div>
                       <div className="text-sm text-gray-500">
                         {drug.genericName}
                         {drug.brandNames.length > 0 && (
                           <span className="ml-2">
-                            ({drug.brandNames.slice(0, 2).join(', ')})
+                            ({drug.brandNames.slice(0, 2).join(", ")})
                           </span>
                         )}
                       </div>
@@ -135,34 +147,62 @@ const DrugSearchForm: React.FC = () => {
           )}
 
           {/* No Results */}
-          {showResults && searchQuery.length >= 2 && searchResults.length === 0 && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-4">
-              <div className="text-center text-gray-500">
-                <Pill className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                <p>No medications found for "{searchQuery}"</p>
-                <p className="text-sm mt-1">Try searching by generic or brand name</p>
+          {showResults &&
+            searchQuery.length >= 2 &&
+            searchResults.length === 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-4">
+                <div className="text-center text-gray-500">
+                  <Pill className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                  <p>No medications found for "{searchQuery}"</p>
+                  <p className="text-sm mt-1">
+                    Try searching by generic or brand name
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
 
         {/* Selected Drugs */}
         {state.selectedDrugs.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-gray-700">
-              Selected Medications ({state.selectedDrugs.length})
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-gray-700">
+                Selected Medications ({state.selectedDrugs.length})
+              </h3>
+              {state.selectedDrugs.length >= 2 && (
+                <div className="flex items-center space-x-2">
+                  {state.interactions.length > 0 ? (
+                    <div className="flex items-center space-x-1 text-xs text-orange-600">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                      <span>
+                        {state.interactions.length} interaction
+                        {state.interactions.length !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-1 text-xs text-green-600">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>No interactions</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             <div className="space-y-2">
               {state.selectedDrugs.map((drug) => (
                 <div
                   key={drug.id}
-                  className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg"
+                  className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg transition-all duration-200 hover:bg-blue-100"
                 >
                   <div className="flex items-center space-x-3">
                     <Pill className="w-4 h-4 text-blue-600" />
                     <div>
-                      <div className="font-medium text-blue-900">{drug.name}</div>
-                      <div className="text-sm text-blue-700">{drug.genericName}</div>
+                      <div className="font-medium text-blue-900">
+                        {drug.name}
+                      </div>
+                      <div className="text-sm text-blue-700">
+                        {drug.genericName}
+                      </div>
                     </div>
                   </div>
                   <button

@@ -1,25 +1,62 @@
-import React from 'react';
-import { AlertTriangle, CheckCircle, Info, Clock, Shield, ExternalLink } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { AlertTriangle, CheckCircle, Info, Clock, Shield, ExternalLink, Zap, TrendingUp, Eye } from 'lucide-react';
 import { useDrugContext } from '../context/DrugContext';
 import { SeverityLevel } from '../types';
 import { getAlternatives } from '../data/mockData';
 
 const InteractionResults: React.FC = () => {
   const { state } = useDrugContext();
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showNewInteraction, setShowNewInteraction] = useState(false);
 
-  const getSeverityIcon = (severity: SeverityLevel) => {
+  // Simulate real-time analysis when drugs change
+  useEffect(() => {
+    if (state.selectedDrugs.length >= 2) {
+      setIsAnalyzing(true);
+      setShowNewInteraction(false);
+      
+      const timer = setTimeout(() => {
+        setIsAnalyzing(false);
+        if (state.interactions.length > 0) {
+          setShowNewInteraction(true);
+          // Auto-hide the "new" indicator after 3 seconds
+          setTimeout(() => setShowNewInteraction(false), 3000);
+        }
+      }, 800); // Simulate analysis time
+
+      return () => clearTimeout(timer);
+    } else {
+      setIsAnalyzing(false);
+      setShowNewInteraction(false);
+    }
+  }, [state.selectedDrugs, state.interactions.length]);
+
+  const getSeverityIcon = (severity: SeverityLevel, isAnimated: boolean = false) => {
+    const baseClass = `w-5 h-5 ${isAnimated ? 'animate-pulse' : ''}`;
     switch (severity) {
       case SeverityLevel.CRITICAL:
-        return <AlertTriangle className="w-5 h-5 text-critical-600" />;
+        return <AlertTriangle className={`${baseClass} text-red-600`} />;
       case SeverityLevel.MAJOR:
-        return <AlertTriangle className="w-5 h-5 text-major-600" />;
+        return <AlertTriangle className={`${baseClass} text-orange-600`} />;
       case SeverityLevel.MODERATE:
-        return <Info className="w-5 h-5 text-moderate-600" />;
+        return <Info className={`${baseClass} text-yellow-600`} />;
       case SeverityLevel.MINOR:
-        return <Info className="w-5 h-5 text-safe-600" />;
+        return <Info className={`${baseClass} text-green-600`} />;
       default:
-        return <Info className="w-5 h-5 text-gray-500" />;
+        return <Info className={`${baseClass} text-gray-500`} />;
     }
+  };
+
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 0.9) return 'text-green-600 bg-green-50';
+    if (confidence >= 0.7) return 'text-yellow-600 bg-yellow-50';
+    return 'text-red-600 bg-red-50';
+  };
+
+  const getConfidenceText = (confidence: number) => {
+    if (confidence >= 0.9) return 'High Confidence';
+    if (confidence >= 0.7) return 'Moderate Confidence';
+    return 'Low Confidence';
   };
 
   const getSeverityClass = (severity: SeverityLevel) => {
@@ -100,58 +137,187 @@ const InteractionResults: React.FC = () => {
   // Show interactions
   return (
     <div className="space-y-6">
-      {/* Summary */}
+      {/* Prominent Interaction Alert Banner */}
+      {state.interactions.length > 0 && !isAnalyzing && (
+        <div className={`
+          p-6 rounded-xl border-2 shadow-lg
+          ${state.interactions.some(i => i.severity === SeverityLevel.CRITICAL) 
+            ? 'bg-red-50 border-red-300 animate-pulse' 
+            : state.interactions.some(i => i.severity === SeverityLevel.MAJOR)
+            ? 'bg-orange-50 border-orange-300'
+            : 'bg-yellow-50 border-yellow-300'}
+        `}>
+          <div className="flex items-center space-x-4">
+            <div className={`
+              w-12 h-12 rounded-full flex items-center justify-center
+              ${state.interactions.some(i => i.severity === SeverityLevel.CRITICAL) 
+                ? 'bg-red-100' 
+                : state.interactions.some(i => i.severity === SeverityLevel.MAJOR)
+                ? 'bg-orange-100'
+                : 'bg-yellow-100'}
+            `}>
+              <AlertTriangle className={`
+                w-6 h-6
+                ${state.interactions.some(i => i.severity === SeverityLevel.CRITICAL) 
+                  ? 'text-red-600' 
+                  : state.interactions.some(i => i.severity === SeverityLevel.MAJOR)
+                  ? 'text-orange-600'
+                  : 'text-yellow-600'}
+              `} />
+            </div>
+            <div className="flex-1">
+              <h3 className={`
+                text-xl font-bold mb-2
+                ${state.interactions.some(i => i.severity === SeverityLevel.CRITICAL) 
+                  ? 'text-red-900' 
+                  : state.interactions.some(i => i.severity === SeverityLevel.MAJOR)
+                  ? 'text-orange-900'
+                  : 'text-yellow-900'}
+              `}>
+                {state.interactions.some(i => i.severity === SeverityLevel.CRITICAL) 
+                  ? '🚨 CRITICAL DRUG INTERACTIONS DETECTED' 
+                  : state.interactions.some(i => i.severity === SeverityLevel.MAJOR)
+                  ? '⚠️ MAJOR DRUG INTERACTIONS DETECTED'
+                  : '⚡ DRUG INTERACTIONS DETECTED'}
+              </h3>
+              <p className={`
+                text-lg
+                ${state.interactions.some(i => i.severity === SeverityLevel.CRITICAL) 
+                  ? 'text-red-800' 
+                  : state.interactions.some(i => i.severity === SeverityLevel.MAJOR)
+                  ? 'text-orange-800'
+                  : 'text-yellow-800'}
+              `}>
+                {state.interactions.length} interaction{state.interactions.length !== 1 ? 's' : ''} found between your medications.
+                {state.interactions.some(i => i.severity === SeverityLevel.CRITICAL) && 
+                  ' Seek immediate medical attention.'}
+                {state.interactions.some(i => i.severity === SeverityLevel.MAJOR) && 
+                  !state.interactions.some(i => i.severity === SeverityLevel.CRITICAL) &&
+                  ' Consult your healthcare provider soon.'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enhanced Summary Dashboard */}
       <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Interaction Analysis
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-gray-900">
+            Real-Time Interaction Analysis
           </h2>
-          <div className="text-sm text-gray-500">
-            {state.selectedDrugs.length} medications checked
+          <div className="flex items-center space-x-4">
+            <div className="text-sm text-gray-500">
+              {state.selectedDrugs.length} medications • {state.interactions.length} interactions
+            </div>
+            {isAnalyzing && (
+              <div className="flex items-center space-x-2 text-blue-600">
+                <Zap className="w-4 h-4 animate-pulse" />
+                <span className="text-sm font-medium">Analyzing...</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {state.interactions.length === 0 ? (
+        {/* Risk Level Summary */}
+        {state.selectedDrugs.length >= 2 && !isAnalyzing && (
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
+            <h3 className="font-medium text-gray-900 mb-3">Risk Assessment Summary</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { level: 'Critical', count: state.interactions.filter(i => i.severity === SeverityLevel.CRITICAL).length, color: 'red' },
+                { level: 'Major', count: state.interactions.filter(i => i.severity === SeverityLevel.MAJOR).length, color: 'orange' },
+                { level: 'Moderate', count: state.interactions.filter(i => i.severity === SeverityLevel.MODERATE).length, color: 'yellow' },
+                { level: 'Minor', count: state.interactions.filter(i => i.severity === SeverityLevel.MINOR).length, color: 'green' }
+              ].map(({ level, count, color }) => (
+                <div key={level} className={`text-center p-3 rounded-lg bg-${color}-50 border border-${color}-200`}>
+                  <div className={`text-2xl font-bold text-${color}-600`}>{count}</div>
+                  <div className={`text-sm text-${color}-700`}>{level}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {isAnalyzing ? (
+          <div className="text-center py-8">
+            <div className="animate-spin w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full mx-auto mb-4"></div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Analyzing Drug Interactions...
+            </h3>
+            <p className="text-gray-600">
+              Checking {state.selectedDrugs.length} medications against our comprehensive database.
+            </p>
+          </div>
+        ) : state.interactions.length === 0 ? (
           <div className="text-center py-6">
-            <CheckCircle className="w-12 h-12 text-safe-500 mx-auto mb-3" />
-            <h3 className="text-lg font-medium text-safe-700 mb-2">
+            <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+            <h3 className="text-lg font-medium text-green-700 mb-2">
               No Known Interactions Found
             </h3>
             <p className="text-gray-600">
               Based on current data, no significant interactions were detected between your selected medications.
             </p>
-            <div className="mt-4 p-3 bg-safe-50 rounded-lg">
-              <p className="text-sm text-safe-800">
-                Continue monitoring for any unusual symptoms and consult your healthcare provider 
+            <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+              <p className="text-sm text-green-800">
+                ✓ Continue monitoring for any unusual symptoms and consult your healthcare provider 
                 if you have concerns.
               </p>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
-            {state.interactions.map((interaction) => (
+            {state.interactions.map((interaction, index) => (
               <div
                 key={interaction.id}
-                className={`p-4 rounded-lg ${getSeverityClass(interaction.severity)}`}
+                className={`relative p-4 rounded-lg ${getSeverityClass(interaction.severity)} ${
+                  showNewInteraction ? 'fade-in' : ''
+                } transition-all duration-300 hover:shadow-md`}
+                style={{ animationDelay: `${index * 100}ms` }}
               >
+                {/* New Interaction Badge */}
+                {showNewInteraction && (
+                  <div className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs px-3 py-1 rounded-full shadow-lg animate-bounce">
+                    ✨ NEW
+                  </div>
+                )}
+
                 {/* Interaction Header */}
-                <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    {getSeverityIcon(interaction.severity)}
+                    {getSeverityIcon(interaction.severity, showNewInteraction)}
                     <div>
-                      <h3 className="font-semibold text-gray-900">
+                      <h3 className="font-semibold text-gray-900 text-lg">
                         {interaction.drugA.name} + {interaction.drugB.name}
                       </h3>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <span className="text-sm font-medium">
-                          {getSeverityText(interaction.severity)} Interaction
+                      <div className="flex items-center space-x-3 mt-2">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          interaction.severity === SeverityLevel.CRITICAL 
+                            ? 'bg-red-100 text-red-800 border border-red-200'
+                            : interaction.severity === SeverityLevel.MAJOR
+                            ? 'bg-orange-100 text-orange-800 border border-orange-200'
+                            : interaction.severity === SeverityLevel.MODERATE
+                            ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                            : 'bg-green-100 text-green-800 border border-green-200'
+                        }`}>
+                          {getSeverityText(interaction.severity)} Risk
                         </span>
-                        <span className="text-sm text-gray-500">
-                          • {Math.round(interaction.confidence * 100)}% confidence
-                        </span>
+                        
+                        {/* Confidence Indicator */}
+                        <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs ${getConfidenceColor(interaction.confidence)}`}>
+                          <TrendingUp className="w-3 h-3" />
+                          <span>{getConfidenceText(interaction.confidence)}</span>
+                          <span className="font-medium">({Math.round(interaction.confidence * 100)}%)</span>
+                        </div>
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Quick Action Button */}
+                  <button className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center space-x-1">
+                    <Eye className="w-4 h-4" />
+                    <span>Details</span>
+                  </button>
                 </div>
 
                 {/* Mechanism */}
@@ -201,17 +367,61 @@ const InteractionResults: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Critical Warning */}
+                {/* Enhanced Critical Warning */}
                 {interaction.severity === SeverityLevel.CRITICAL && (
-                  <div className="mt-4 p-3 bg-critical-100 border border-critical-200 rounded-lg">
+                  <div className="mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-lg shadow-lg">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                          <AlertTriangle className="w-5 h-5 text-red-600 animate-pulse" />
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-bold text-red-900 text-lg mb-2">
+                          ⚠️ CRITICAL INTERACTION ALERT
+                        </h4>
+                        <p className="text-red-800 font-medium mb-2">
+                          Immediate medical attention may be required
+                        </p>
+                        <p className="text-sm text-red-700 mb-3">
+                          Contact your healthcare provider immediately to discuss this interaction.
+                        </p>
+                        <div className="bg-red-100 p-3 rounded border border-red-200">
+                          <p className="text-xs text-red-800">
+                            <strong>Emergency:</strong> If experiencing severe symptoms, call emergency services immediately.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Major Warning */}
+                {interaction.severity === SeverityLevel.MAJOR && (
+                  <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
                     <div className="flex items-center space-x-2">
-                      <AlertTriangle className="w-5 h-5 text-critical-600" />
-                      <span className="font-medium text-critical-800">
-                        Immediate medical attention may be required
+                      <AlertTriangle className="w-5 h-5 text-orange-600" />
+                      <span className="font-medium text-orange-800">
+                        Significant interaction - Monitor closely
                       </span>
                     </div>
-                    <p className="text-sm text-critical-700 mt-1">
-                      Contact your healthcare provider immediately to discuss this interaction.
+                    <p className="text-sm text-orange-700 mt-1">
+                      Consult your healthcare provider about this combination and monitoring requirements.
+                    </p>
+                  </div>
+                )}
+
+                {/* Moderate Warning */}
+                {interaction.severity === SeverityLevel.MODERATE && (
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <Info className="w-5 h-5 text-yellow-600" />
+                      <span className="font-medium text-yellow-800">
+                        Moderate interaction - Be aware
+                      </span>
+                    </div>
+                    <p className="text-sm text-yellow-700 mt-1">
+                      Monitor for symptoms and discuss with your healthcare provider if concerned.
                     </p>
                   </div>
                 )}
